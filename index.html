@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ÁgilMaster - Sistema de Gestão</title>
+  
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  
+  <!-- React -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <script>
+    // 🔥 CONFIGURAÇÃO FIREBASE
+    const firebaseConfig = {
+      apiKey: "AIzaSyAm8_RNpV_L-Ab7tV2qJZQ2Mnn3xugj0H8",
+      authDomain: "agilmaster.firebaseapp.com",
+      projectId: "agilmaster",
+      storageBucket: "agilmaster.firebasestorage.app",
+      messagingSenderId: "376041748635",
+      appId: "1:376041748635:web:c735fc13e9422731ceee3e"
+    };
+    
+    // Inicializar Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    
+    console.log('🔥 Firebase conectado!');
+    console.log('📦 Firestore pronto!');
+    console.log('🎯 Versão: 21/10/2025 - 23:30 - FIRESTORE ATIVO');
+    
+    // 🚀 DADOS INICIAIS (Eliana + Vinicius)
+    const dadosIniciais = [{"id":1,"nomeCompleto":"ELIANA GOMES BARBOSA","cpf":"274.160.458-43","dataNascimento":"1988-04-15","telefone":"91-98425-1919","email":"eliana@email.com","enderecoCompleto":"Rua Principal, 123, Paragominas/PA","casado":true,"nomeConjuge":"Carlos Barbosa","cpfConjuge":"123.456.789-00","cnpj":"","nomeEmpresa":"","tipoAtendimento":"Padrão","grupo":{"atuaSozinho":true,"membros":[]},"propriedades":[{"id":"prop_1729554595447","nomePropriedade":"Fazenda Santa Maria","areaTotal":"104,23","municipio":"Paragominas","uf":"PA","cartorioNome":"Único Ofício de Paragominas","cartorioCidade":"Paragominas","dataEmissao":"2023-05-15","numeroMatricula":"12345","livro":"02","comarca":"Paragominas","limiteNorte":"","limiteSul":"","limiteLeste":"","limiteOeste":"","proprietarioNome":"ELIANA GOMES BARBOSA","proprietarioCpfCnpj":"274.160.458-43","proprietarioRg":"","proprietarioEstadoCivil":"","proprietarioEndereco":"","nirf":"","ccir":"","codigoImovelRural":"","classificacaoFundiaria":"","observacoes":"","matriculaFile":null,"carFile":null,"ccirFile":null,"itrFile":null}],"maquinas":[],"veiculos":[],"imoveis":[],"producao":[],"culturas":[],"fruticultura":[],"totalHectares":104.23,"totalHectaresAgricola":0,"totalPropriedades":1,"dataCadastro":"2024-10-21T22:23:15.447Z","dataAtualizacao":"2024-10-21T22:23:15.447Z"},{"id":2,"nomeCompleto":"VINICIUS ARAUJO COSTA","cpf":"224.256.608-36","dataNascimento":"1985-08-20","telefone":"91-99876-5432","email":"vinicius@email.com","enderecoCompleto":"Avenida Central, 456, Ulianópolis/PA","casado":false,"nomeConjuge":"","cpfConjuge":"","cnpj":"12.345.678/0001-90","nomeEmpresa":"Agro Vinicius LTDA","tipoAtendimento":"VIP","grupo":{"atuaSozinho":false,"membros":[{"nome":"João Silva","cpf":"111.222.333-44"},{"nome":"Maria Santos","cpf":"555.666.777-88"}]},"propriedades":[{"id":"prop_1729554789123","nomePropriedade":"Fazenda Boa Vista","areaTotal":"250,50","municipio":"Ulianópolis","uf":"PA","cartorioNome":"Cartório de Registro de Imóveis","cartorioCidade":"Ulianópolis","dataEmissao":"2022-11-10","numeroMatricula":"54321","livro":"05","comarca":"Ulianópolis","proprietarioNome":"VINICIUS ARAUJO COSTA","proprietarioCpfCnpj":"224.256.608-36","nirf":"123456-7","ccir":"987654321","matriculaFile":null,"carFile":null,"ccirFile":null,"itrFile":null}],"maquinas":[{"tipo":"Trator","marca":"John Deere","modelo":"6145J","ano":"2020","placa":"ABC-1234"}],"veiculos":[{"tipo":"Caminhonete","marca":"Toyota","modelo":"Hilux","ano":"2021","placa":"XYZ-9876"}],"imoveis":[],"producao":[],"culturas":[{"cultura":"Soja","hectares":"150,00","producaoEstimada":"4500"}],"fruticultura":[],"totalHectares":250.50,"totalHectaresAgricola":150,"totalPropriedades":1,"dataCadastro":"2024-10-21T22:26:29.123Z","dataAtualizacao":"2024-10-21T22:26:29.123Z"}];
+    
+    // 📦 MIGRAR dados iniciais (roda só uma vez)
+    async function migrarDadosIniciais() {
+      try {
+        const snapshot = await db.collection('clientes').get();
+        
+        if (snapshot.empty) {
+          console.log('📦 Migrando Eliana e Vinicius pro Firestore...');
+          
+          for (const cliente of dadosIniciais) {
+            const cpfLimpo = cliente.cpf.replace(/\D/g, '');
+            await db.collection('clientes').doc(cpfLimpo).set(cliente);
+          }
+          
+          console.log('✅ Migração concluída!');
+          console.log('👥 Eliana e Vinicius agora estão no Firestore!');
+        } else {
+          console.log('✅ Firestore já tem dados (' + snapshot.size + ' clientes)');
+        }
+      } catch (error) {
+        console.error('❌ Erro ao migrar:', error);
+      }
+    }
+    
+    // Executar migração ao carregar
+    migrarDadosIniciais();
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    function AgilMaster() {
+      const [clients, setClients] = useState([]);
+      const [loading, setLoading] = useState(true);
+      const [currentView, setCurrentView] = useState('home');
+
+      // 🔥 CARREGAR dados do Firestore em TEMPO REAL
+      useEffect(() => {
+        console.log('🔄 Configurando listener do Firestore...');
+        
+        const unsubscribe = db.collection('clientes').onSnapshot((snapshot) => {
+          const clientesFirestore = [];
+          
+          snapshot.forEach((doc) => {
+            clientesFirestore.push({
+              ...doc.data(),
+              id: doc.id
+            });
+          });
+          
+          console.log('✅ Carregou', clientesFirestore.length, 'clientes do Firestore');
+          setClients(clientesFirestore);
+          setLoading(false);
+        }, (error) => {
+          console.error('❌ Erro ao carregar:', error);
+          setLoading(false);
+        });
+        
+        return () => unsubscribe();
+      }, []);
+
+      if (loading) {
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-yellow-50 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-emerald-900 mx-auto"></div>
+              <p className="mt-4 text-2xl font-bold text-emerald-900">Carregando AgilMaster...</p>
+              <p className="text-emerald-700">Conectando com Firestore 🔥</p>
+            </div>
+          </div>
+        );
+      }
+
+      const totalHectares = clients.reduce((acc, c) => acc + (c.totalHectares || 0), 0);
+      const vipClients = clients.filter(c => c.tipoAtendimento === 'VIP').length;
+
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-yellow-50">
+          {/* Header */}
+          <header className="bg-gradient-to-r from-emerald-900 to-emerald-800 border-b-4 border-yellow-600 shadow-lg sticky top-0 z-40">
+            <div className="px-6 py-4">
+              <h1 className="text-3xl font-bold text-yellow-400">🔥 ÁgilMaster Firestore</h1>
+              <p className="text-sm text-emerald-200">Sistema Multiusuário com Sincronização em Tempo Real</p>
+            </div>
+            
+            <div className="px-6 pb-3 flex gap-2">
+              <button
+                onClick={() => setCurrentView('home')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  currentView === 'home' ? 'bg-yellow-500 text-emerald-900' : 'text-yellow-200 hover:bg-emerald-800'
+                }`}
+              >
+                📊 Dashboard
+              </button>
+              <button
+                onClick={() => setCurrentView('clients')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  currentView === 'clients' ? 'bg-yellow-500 text-emerald-900' : 'text-yellow-200 hover:bg-emerald-800'
+                }`}
+              >
+                👥 Clientes ({clients.length})
+              </button>
+            </div>
+          </header>
+
+          {/* Content */}
+          <div className="p-6 max-w-7xl mx-auto">
+            {currentView === 'home' && (
+              <div>
+                <h2 className="text-3xl font-bold text-emerald-900 mb-6">Dashboard Geral</h2>
+                
+                {/* Métricas */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                  <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
+                    <h3 className="text-lg font-semibold mb-2">Total de Clientes</h3>
+                    <p className="text-4xl font-bold">{clients.length}</p>
+                    <p className="text-sm opacity-80 mt-1">{vipClients} clientes VIP</p>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg">
+                    <h3 className="text-lg font-semibold mb-2">Total de Hectares</h3>
+                    <p className="text-4xl font-bold">{totalHectares.toFixed(2)}</p>
+                    <p className="text-sm opacity-80 mt-1">hectares gerenciados</p>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white shadow-lg">
+                    <h3 className="text-lg font-semibold mb-2">Sistema</h3>
+                    <p className="text-2xl font-bold">✅ Online</p>
+                    <p className="text-sm opacity-80 mt-1">Sincronização ativa</p>
+                  </div>
+                </div>
+
+                {/* Informações do Sistema */}
+                <div className="bg-white rounded-xl shadow-lg border-2 border-emerald-200 p-6 mb-6">
+                  <h3 className="text-xl font-bold text-emerald-900 mb-4 flex items-center gap-2">
+                    🔥 Sistema Multiusuário Ativo!
+                  </h3>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="font-semibold text-emerald-800 mb-2">✅ Funcionalidades Ativas:</h4>
+                      <ul className="space-y-1 text-emerald-700 text-sm">
+                        <li>• Múltiplos usuários simultâneos</li>
+                        <li>• Sincronização em tempo real</li>
+                        <li>• Backup automático na nuvem</li>
+                        <li>• Acesso de qualquer dispositivo</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-emerald-800 mb-2">📊 Dados do Sistema:</h4>
+                      <ul className="space-y-1 text-emerald-700 text-sm">
+                        <li>• Banco: Firebase Firestore</li>
+                        <li>• Hospedagem: GitHub Pages</li>
+                        <li>• Status: 100% Operacional</li>
+                        <li>• Versão: 21/10/2025 - 23:30</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Lista Resumida */}
+                {clients.length > 0 && (
+                  <div className="bg-white rounded-xl shadow-lg border border-emerald-200 p-6">
+                    <h3 className="text-xl font-bold text-emerald-900 mb-4">Últimos Clientes</h3>
+                    <div className="space-y-3">
+                      {clients.slice(0, 5).map(client => (
+                        <div key={client.id} className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg">
+                          <div>
+                            <p className="font-semibold text-emerald-900">{client.nomeCompleto}</p>
+                            <p className="text-sm text-gray-600">{client.telefone}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm text-gray-500">Hectares</p>
+                            <p className="font-bold text-emerald-700">{(client.totalHectares || 0).toFixed(2)}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {currentView === 'clients' && (
+              <div>
+                <h2 className="text-3xl font-bold text-emerald-900 mb-6">Carteira de Clientes</h2>
+                
+                {clients.length === 0 ? (
+                  <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+                    <div className="text-6xl mb-4">📋</div>
+                    <p className="text-xl text-gray-500">Nenhum cliente cadastrado ainda.</p>
+                    <p className="text-gray-400 mt-2">Os clientes aparecerão aqui automaticamente!</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {clients.map(client => (
+                      <div key={client.id} className="bg-white rounded-xl shadow-sm border border-emerald-200 p-5 hover:shadow-lg transition-all cursor-pointer">
+                        <div className="mb-3">
+                          <h3 className="font-bold text-lg text-emerald-900">{client.nomeCompleto}</h3>
+                          <p className="text-sm text-gray-600">CPF: {client.cpf}</p>
+                          {client.telefone && <p className="text-sm text-gray-600">📞 {client.telefone}</p>}
+                          {client.email && <p className="text-sm text-gray-600">📧 {client.email}</p>}
+                        </div>
+                        
+                        <div className="pt-3 border-t border-gray-100">
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            <div>
+                              <p className="text-gray-500">Propriedades</p>
+                              <p className="font-semibold text-emerald-900">{client.totalPropriedades || 0}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-500">Hectares</p>
+                              <p className="font-semibold text-emerald-900">{(client.totalHectares || 0).toFixed(2)}</p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-3 flex gap-2">
+                          {client.tipoAtendimento && (
+                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              client.tipoAtendimento === 'VIP' ? 'bg-purple-100 text-purple-700' :
+                              client.tipoAtendimento === 'Padrão' ? 'bg-blue-100 text-blue-700' :
+                              'bg-gray-100 text-gray-700'
+                            }`}>
+                              {client.tipoAtendimento}
+                            </span>
+                          )}
+                          {client.cnpj && (
+                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                              CNPJ
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // Renderizar
+    ReactDOM.render(<AgilMaster />, document.getElementById('root'));
+  </script>
+</body>
+</html>
