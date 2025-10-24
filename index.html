@@ -15,7 +15,7 @@
 <div id="root"></div>
 
 
-<!-- ==================== SINCRONIZAÇÃO NUVEM FORÇADA ==================== -->
+<!-- ==================== SINCRONIZAÇÃO NUVEM COM MERGE INTELIGENTE ==================== -->
 <script>
 (function() {
   const API = 'https://masteragil.netlify.app/.netlify/functions';
@@ -23,6 +23,33 @@
   const original = localStorage.setItem.bind(localStorage);
   const originalGet = localStorage.getItem.bind(localStorage);
   let syncInProgress = false;
+  
+  // Função para fazer merge de clientes por CPF (chave única)
+  function mergeClientes(apiClientes, localClientes) {
+    const clientesMap = new Map();
+    
+    // Adiciona clientes da API
+    apiClientes.forEach(cliente => {
+      if (cliente.cpf) {
+        clientesMap.set(cliente.cpf, cliente);
+      }
+    });
+    
+    // Adiciona/atualiza com clientes locais (prioriza o mais recente)
+    localClientes.forEach(cliente => {
+      if (cliente.cpf) {
+        const existente = clientesMap.get(cliente.cpf);
+        // Se não existe OU se o local é mais recente, usa o local
+        if (!existente || !existente.updatedAt || 
+            (cliente.updatedAt && new Date(cliente.updatedAt) > new Date(existente.updatedAt))) {
+          clientesMap.set(cliente.cpf, cliente);
+        }
+      }
+    });
+    
+    // Retorna array de clientes únicos
+    return Array.from(clientesMap.values());
+  }
   
   // Intercepta salvamentos
   localStorage.setItem = function(key, value) {
@@ -52,23 +79,35 @@
       
       console.log(`📊 API: ${apiClientes.length} | Local: ${localClientes.length}`);
       
-      // Sempre usa o que tem MAIS clientes
-      if (apiClientes.length > localClientes.length) {
-        console.log('📥 Baixando da API');
+      // 🔥 MERGE INTELIGENTE - une clientes únicos por CPF
+      const clientesMerged = mergeClientes(apiClientes, localClientes);
+      
+      console.log(`🔀 Após merge: ${clientesMerged.length} clientes únicos`);
+      
+      // Verifica se houve mudança
+      const houveMudanca = clientesMerged.length !== localClientes.length ||
+                           JSON.stringify(clientesMerged.sort((a,b) => a.cpf?.localeCompare(b.cpf))) !== 
+                           JSON.stringify(localClientes.sort((a,b) => a.cpf?.localeCompare(b.cpf)));
+      
+      if (houveMudanca) {
+        console.log('🔄 Sincronizando dados...');
+        
+        // Atualiza local
         syncInProgress = true;
-        original(KEY, JSON.stringify(apiClientes));
+        original(KEY, JSON.stringify(clientesMerged));
         syncInProgress = false;
-        setTimeout(() => location.reload(), 500);
-      } else if (localClientes.length > apiClientes.length) {
-        console.log('📤 Enviando para API');
+        
+        // Envia para API
         await fetch(API + '/save-clientes', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({clientes: localClientes})
+          body: JSON.stringify({clientes: clientesMerged})
         });
-        console.log('✅ API atualizada');
+        
+        console.log('✅ Sincronizado e mesclado!');
+        setTimeout(() => location.reload(), 500);
       } else {
-        console.log('✅ Sincronizado');
+        console.log('✅ Já sincronizado');
       }
     } catch (e) {
       console.log('💾 Usando local:', e.message);
@@ -81,12 +120,7 @@
     syncOnLoad();
   }
   
-  console.log('🔄 Sync forçado ativo');
-})();
-</script>
-<!-- ==================== FIM SINCRONIZAÇÃO ==================== -->
-
-  console.log('🔄 Sync ativo');
+  console.log('🔄 Sync com MERGE inteligente ativo');
 })();
 </script>
 <!-- ==================== FIM SINCRONIZAÇÃO ==================== -->
